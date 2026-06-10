@@ -82,34 +82,48 @@ Kiểm tra: `contains_expected` phải `true` và `hits_forbidden` phải `false
 
 ```
 lab/
-├── etl_pipeline.py           # Sprint 1–2: run ingest→clean→validate→embed
-├── eval_retrieval.py         # Sprint 3–4: before/after retrieval (CSV)
-├── grading_run.py            # Grading chính thức — 10 câu đánh giá
-├── instructor_quick_check.py # GV: sanity artifact grading/manifest (tuỳ chọn)
+├── etl_pipeline.py              # Run ingest → clean → validate → embed
+├── embedding_provider.py        # Embedding provider chung (Ollama / SentenceTransformers)
+├── eval_retrieval.py            # Eval self-check 21 câu (CSV)
+├── grading_run.py               # Grading chính thức 10 câu (JSONL)
+├── instructor_quick_check.py    # Sanity check grading/manifest
+├── rag_agent.py                 # CLI RAG agent: retrieve + OpenRouter answer
+├── chat_server.py               # Web backend local cho UI chat
+├── static/
+│   └── chat.html                # HTML/CSS/JS chat UI
 │
 ├── transform/
-│   └── cleaning_rules.py     # ⚠️ Baseline chưa đủ — sinh viên phải sửa + mở rộng
+│   └── cleaning_rules.py        # Allowlist, cleaning, quarantine, stale rules
 ├── quality/
-│   └── expectations.py       # Baseline expectations — sinh viên thêm ≥2 mới
+│   └── expectations.py          # Expectation suite + controlled halt
 ├── monitoring/
-│   └── freshness_check.py    # Đọc manifest + SLA đơn giản
+│   └── freshness_check.py       # Manifest freshness PASS/WARN/FAIL
 │
 ├── contracts/
-│   └── data_contract.yaml    # Contract dữ liệu — điền owner/SLA
+│   └── data_contract.yaml       # Contract nguồn, schema, quality, freshness
 │
 ├── data/
-│   ├── docs/                 # 5 tài liệu gốc (policy, SLA, FAQ, HR, access control)
+│   ├── docs/                    # 5 tài liệu gốc (policy, SLA, FAQ, HR, access control)
 │   ├── raw/
-│   │   └── policy_export_dirty.csv   # Export bẩn từ 5 hệ thống nguồn
-│   ├── test_questions.json           # 21 câu tự kiểm (retrieval + keyword)
-│   └── grading_questions.json        # 10 câu đánh giá chính thức
+│   │   └── policy_export_dirty.csv
+│   ├── test_questions.json      # 21 câu tự kiểm
+│   └── grading_questions.json   # 10 câu đánh giá chính thức
 │
 ├── artifacts/
-│   ├── logs/
-│   ├── manifests/
-│   ├── quarantine/
 │   ├── cleaned/
-│   └── eval/
+│   │   └── cleaned_sprint123-qwen-final.csv
+│   ├── eval/
+│   │   ├── after_fix_eval.csv
+│   │   ├── after_inject_bad.csv
+│   │   └── grading_run.jsonl
+│   ├── logs/
+│   │   ├── run_inject-bad-qwen.log
+│   │   └── run_sprint123-qwen-final.log
+│   ├── manifests/
+│   │   ├── manifest_inject-bad-qwen.json
+│   │   └── manifest_sprint123-qwen-final.json
+│   └── quarantine/
+│       └── quarantine_sprint123-qwen-final.csv
 │
 ├── docs/
 │   ├── pipeline_architecture.md
@@ -120,8 +134,11 @@ lab/
 ├── reports/
 │   ├── group_report.md
 │   └── individual/
+│       ├── 2A202600588-NGUYENDUCKHANG.md
 │       └── template.md
 │
+├── chroma_db/                 # Local vector DB (ignored, không commit)
+├── .env                       # Local secrets/config (ignored, không commit)
 ├── requirements.txt
 └── .env.example
 ```
