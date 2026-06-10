@@ -138,7 +138,13 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-**Lần đầu** SentenceTransformers có thể tải model `all-MiniLM-L6-v2` (~90MB) — cần mạng.
+Embedding dùng Ollama local. Kiểm tra model:
+
+```bash
+ollama list
+# Nếu thiếu model:
+ollama pull qwen3-embedding:0.6b
+```
 
 ---
 
@@ -149,6 +155,9 @@ cp .env.example .env
 ```bash
 # Chạy toàn bộ: ingest → clean → validate → embed
 python etl_pipeline.py run
+
+# Lệnh một dòng nhóm dùng cho run cuối Sprint 1–4
+python etl_pipeline.py run --run-id sprint123-qwen-final
 
 # Kiểm tra freshness
 python etl_pipeline.py freshness --manifest artifacts/manifests/manifest_<run-id>.json
@@ -163,6 +172,14 @@ cat artifacts/eval/after_fix_eval.csv
 
 > **Ghi chú eval:** `hits_forbidden` quét **toàn bộ top-k** chunk ghép lại (không chỉ top-1), để phát hiện "câu trả lời nhìn đúng nhưng context vẫn còn chunk stale".  
 > **Index snapshot:** sau mỗi lần `run`, embed **upsert** theo `chunk_id` và **xoá id không còn trong cleaned** để tránh vector cũ làm fail grading.
+
+### Web chat với agent
+
+```bash
+python chat_server.py --port 8765
+```
+
+Mở `http://127.0.0.1:8765`. Giao diện gọi `rag_agent.py`: retrieve context bằng Chroma + Ollama embedding, sau đó gọi OpenRouter model trong `.env`.
 
 ### Sprint 3 — Inject corruption (embed dữ liệu "xấu", bỏ qua halt)
 

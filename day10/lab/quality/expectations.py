@@ -11,6 +11,17 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
 
+REQUIRED_DOC_IDS = frozenset(
+    {
+        "policy_refund_v4",
+        "sla_p1_2026",
+        "it_helpdesk_faq",
+        "hr_leave_policy",
+        "access_control_sop",
+    }
+)
+
+
 @dataclass
 class ExpectationResult:
     name: str
@@ -109,6 +120,67 @@ def run_expectations(cleaned_rows: List[Dict[str, Any]]) -> Tuple[List[Expectati
             ok6,
             "halt",
             f"violations={len(bad_hr_annual)}",
+        )
+    )
+
+    # E7: đủ 5 nguồn bắt buộc để pass grading chính thức.
+    present_doc_ids = {r.get("doc_id", "") for r in cleaned_rows}
+    missing_doc_ids = sorted(REQUIRED_DOC_IDS - present_doc_ids)
+    ok7 = len(missing_doc_ids) == 0
+    results.append(
+        ExpectationResult(
+            "required_doc_ids_present",
+            ok7,
+            "halt",
+            f"missing_doc_ids={missing_doc_ids}",
+        )
+    )
+
+    # E8: chunk_id là khóa publish idempotent, không được trùng.
+    ids = [r.get("chunk_id", "") for r in cleaned_rows]
+    duplicate_ids = len(ids) - len(set(ids))
+    ok8 = duplicate_ids == 0 and all(ids)
+    results.append(
+        ExpectationResult(
+            "chunk_id_unique_non_empty",
+            ok8,
+            "halt",
+            f"duplicate_ids={duplicate_ids} empty_ids={sum(1 for x in ids if not x)}",
+        )
+    )
+
+    # E9: exported_at sau clean phải là ISO datetime để freshness/manifest đáng tin.
+    exported_bad = [
+        r
+        for r in cleaned_rows
+        if not re.match(
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$",
+            (r.get("exported_at") or "").strip(),
+        )
+    ]
+    ok9 = len(exported_bad) == 0
+    results.append(
+        ExpectationResult(
+            "exported_at_iso_datetime",
+            ok9,
+            "halt",
+            f"non_iso_exported_at_rows={len(exported_bad)}",
+        )
+    )
+
+    # E10: không còn marker nội dung mơ hồ trong cleaned corpus.
+    ambiguous = [
+        r
+        for r in cleaned_rows
+        if (r.get("chunk_text") or "").strip().lower().startswith("nội dung không rõ ràng:")
+    ]
+    ok10 = len(ambiguous) == 0
+    results.append(
+        ExpectationResult(
+            "no_ambiguous_chunk_marker",
+            ok10,
+            "halt",
+            f"ambiguous_chunks={len(ambiguous)}",
         )
     )
 

@@ -1,0 +1,16 @@
+{
+  "run_id": "inject-bad-qwen",
+  "run_timestamp": "2026-06-10T06:14:38.783664+00:00",
+  "raw_path": "data/raw/policy_export_dirty.csv",
+  "raw_records": 247,
+  "cleaned_records": 29,
+  "quarantine_records": 218,
+  "latest_exported_at": "2026-04-11T00:00:00",
+  "no_refund_fix": true,
+  "skipped_validate": true,
+  "cleaned_csv": "artifacts/cleaned/cleaned_inject-bad-qwen.csv",
+  "chroma_path": "./chroma_db",
+  "chroma_collection": "day10_kb_qwen3",
+  "embedding_provider": "ollama",
+  "embedding_model": "qwen3-embedding:0.6b"
+}

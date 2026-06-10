@@ -1,0 +1,30 @@
+chunk_id,doc_id,chunk_text,effective_date,exported_at
+policy_refund_v4_1_3b11f30cc4b49d25,policy_refund_v4,Yêu cầu được gửi trong vòng 7 ngày làm việc kể từ thời điểm xác nhận đơn hàng.,2026-03-30,2026-04-02T00:00:00
+policy_refund_v4_2_3a87922fb9e57ad9,policy_refund_v4,Yêu cầu hoàn tiền được chấp nhận trong vòng 7 ngày làm việc kể từ xác nhận đơn. [cleaned: stale_refund_window],2026-02-05,2026-04-05T00:00:00
+sla_p1_2026_3_ab622211ba880896,sla_p1_2026,Ticket P1 có SLA phản hồi ban đầu 15 phút và resolution trong 4 giờ.,2026-03-15,2026-04-04T00:00:00
+it_helpdesk_faq_4_ba09094c6802344b,it_helpdesk_faq,Tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp.,2026-02-18,2026-04-11T00:00:00
+access_control_sop_5_018eaf06a1899e5e,access_control_sop,Level 4 Admin Access yêu cầu phê duyệt bởi IT Manager và CISO. Thời gian xử lý: 5 ngày làm việc. Yêu cầu thêm: training bắt buộc về security policy.,2026-01-01,2026-04-08T00:00:00
+access_control_sop_6_8c17560a4c1ca085,access_control_sop,Quyền Standard Access (Level 2) được xử lý trong 2 ngày làm việc sau khi Line Manager và IT Admin phê duyệt.,2026-01-01,2026-04-08T00:00:00
+access_control_sop_7_16567e53d28db161,access_control_sop,Level 1 Read Only: phê duyệt bởi Line Manager. Thời gian xử lý: 1 ngày làm việc. Áp dụng cho nhân viên mới 30 ngày đầu.,2026-01-01,2026-04-09T00:00:00
+access_control_sop_8_389415fe1067fedc,access_control_sop,Level 3 Elevated Access: phê duyệt bởi Line Manager + IT Admin + IT Security. Thời gian xử lý: 3 ngày làm việc.,2026-01-01,2026-04-09T00:00:00
+access_control_sop_9_223911e415df9f5c,access_control_sop,Escalation khẩn cấp: On-call IT Admin cấp quyền tạm thời max 24 giờ sau khi được Tech Lead phê duyệt.,2026-01-01,2026-04-10T00:00:00
+policy_refund_v4_10_c7632f89e3dca2eb,policy_refund_v4,"Ngoại lệ không được hoàn tiền: sản phẩm thuộc danh mục hàng kỹ thuật số (license key, subscription). Đơn hàng đã áp dụng mã giảm giá Flash Sale cũng không được hoàn.",2026-02-01,2026-04-08T00:00:00
+policy_refund_v4_11_e9fa83f81b04ead7,policy_refund_v4,Finance Team xử lý hoàn tiền trong 3-5 ngày làm việc và thông báo kết quả cho khách hàng.,2026-02-01,2026-04-09T00:00:00
+policy_refund_v4_12_61ea20670b4e7fbd,policy_refund_v4,CS Agent xem xét yêu cầu hoàn tiền trong vòng 1 ngày làm việc và xác nhận đủ điều kiện.,2026-02-01,2026-04-08T00:00:00
+policy_refund_v4_13_eb0f6d92e0ccda0d,policy_refund_v4,Email liên hệ nội bộ cho chính sách hoàn tiền: cs-refund@company.internal. Hotline nội bộ: ext. 1234.,2026-02-01,2026-04-09T00:00:00
+policy_refund_v4_14_18c5685b8aad430f,policy_refund_v4,Hoàn tiền qua phương thức thanh toán gốc hoặc store credit với giá trị 110% so với số tiền hoàn.,2026-02-01,2026-04-10T00:00:00
+sla_p1_2026_15_4fbf93d4f43bf824,sla_p1_2026,Escalation P1: tự động escalate lên Senior Engineer nếu không có phản hồi trong 10 phút.,2026-01-15,2026-04-09T00:00:00
+sla_p1_2026_16_828d100436ae4c3a,sla_p1_2026,Thông báo stakeholder P1: update mỗi 30 phút cho đến khi resolve.,2026-01-15,2026-04-08T00:00:00
+sla_p1_2026_17_1d07aa0a20a76009,sla_p1_2026,Kênh thông báo sự cố P1: Slack #incident-p1 và email incident@company.internal. PagerDuty tự động nhắn on-call.,2026-01-15,2026-04-10T00:00:00
+sla_p1_2026_18_76defb089d5a9535,sla_p1_2026,Ticket P2: phản hồi ban đầu 2 giờ và resolution 1 ngày làm việc. Escalation sau 90 phút không phản hồi.,2026-01-15,2026-04-08T00:00:00
+it_helpdesk_faq_19_c40bf2592ab63084,it_helpdesk_faq,VPN: mỗi tài khoản được kết nối tối đa 2 thiết bị cùng lúc. Phần mềm sử dụng: Cisco AnyConnect.,2026-01-20,2026-04-09T00:00:00
+it_helpdesk_faq_20_76230f6d6f11c7ef,it_helpdesk_faq,Mật khẩu phải được thay đổi mỗi 90 ngày. Hệ thống nhắc nhở 7 ngày trước khi hết hạn.,2026-01-20,2026-04-08T00:00:00
+it_helpdesk_faq_21_c1e0ccac689ba3a4,it_helpdesk_faq,Quên mật khẩu: truy cập SSO portal hoặc liên hệ Helpdesk ext. 9000. Mật khẩu mới gửi qua email trong vòng 5 phút.,2026-01-20,2026-04-10T00:00:00
+it_helpdesk_faq_22_f95d4ee22534fea9,it_helpdesk_faq,Dung lượng hộp thư tiêu chuẩn là 50GB. Nếu đầy có thể xóa email cũ hoặc yêu cầu tăng dung lượng qua ticket IT-ACCESS.,2026-01-20,2026-04-09T00:00:00
+it_helpdesk_faq_23_98f751618f1303fc,it_helpdesk_faq,Laptop mới được cấp trong ngày onboarding đầu tiên. Liên hệ HR hoặc IT Admin nếu có vấn đề.,2026-01-20,2026-04-08T00:00:00
+hr_leave_policy_24_7e0a7988d3a23fd2,hr_leave_policy,Nhân viên từ 3 đến 5 năm kinh nghiệm được 15 ngày phép năm theo chính sách 2026.,2026-01-01,2026-04-09T00:00:00
+hr_leave_policy_25_404646f66cad2d19,hr_leave_policy,Nhân viên trên 5 năm kinh nghiệm được 18 ngày phép năm theo chính sách 2026.,2026-01-01,2026-04-10T00:00:00
+hr_leave_policy_26_e6ae7ac7a936fe28,hr_leave_policy,Nghỉ ốm: 10 ngày/năm có trả lương. Cần giấy tờ y tế nếu nghỉ trên 3 ngày liên tiếp.,2026-01-01,2026-04-08T00:00:00
+hr_leave_policy_27_384707a2afb25fb3,hr_leave_policy,Tối đa 5 ngày phép năm chưa dùng được chuyển sang năm tiếp theo.,2026-01-01,2026-04-09T00:00:00
+hr_leave_policy_28_bf4175d3667e835a,hr_leave_policy,Remote work: sau probation tối đa 2 ngày/tuần. Ngày onsite bắt buộc: Thứ 3 và Thứ 5.,2026-01-01,2026-04-10T00:00:00
+hr_leave_policy_29_d54a872d9381e362,hr_leave_policy,Nhân viên dưới 3 năm kinh nghiệm được 12 ngày phép năm theo chính sách 2026.,2026-01-01,2026-04-11T00:00:00

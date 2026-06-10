@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -20,11 +21,23 @@ ALLOWED_DOC_IDS = frozenset(
         "sla_p1_2026",
         "it_helpdesk_faq",
         "hr_leave_policy",
+        "access_control_sop",
     }
 )
 
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _DMY_SLASH = re.compile(r"^(\d{2})/(\d{2})/(\d{4})$")
+_ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$")
+_SLASH_DATETIME = re.compile(r"^(\d{4})/(\d{2})/(\d{2})T(\d{2}:\d{2}:\d{2})$")
+_REPEATED_LAM_VIEC = re.compile(r"(làm việc)(?:\s+làm việc)+", re.IGNORECASE)
+
+DOC_MIN_EFFECTIVE_DATES = {
+    "policy_refund_v4": "2026-02-01",
+    "sla_p1_2026": "2026-01-15",
+    "it_helpdesk_faq": "2026-01-20",
+    "hr_leave_policy": "2026-01-01",
+    "access_control_sop": "2026-01-01",
+}
 
 
 def _norm_text(s: str) -> str:
@@ -53,6 +66,37 @@ def _normalize_effective_date(raw: str) -> Tuple[str, str]:
     return "", "invalid_effective_date_format"
 
 
+def _normalize_exported_at(raw: str) -> Tuple[str, str]:
+    s = (raw or "").strip()
+    if not s:
+        return "", "missing_exported_at"
+    if _ISO_DATETIME.match(s):
+        return s, ""
+    m = _SLASH_DATETIME.match(s)
+    if m:
+        yyyy, mm, dd, clock = m.group(1), m.group(2), m.group(3), m.group(4)
+        return f"{yyyy}-{mm}-{dd}T{clock}", ""
+    return "", "invalid_exported_at_format"
+
+
+def _normalize_chunk_text(text: str) -> str:
+    fixed = " ".join((text or "").strip().split())
+    fixed = fixed.lstrip("!").strip()
+    fixed = _REPEATED_LAM_VIEC.sub(r"\1", fixed)
+    return fixed
+
+
+def _is_ambiguous_chunk(text: str) -> bool:
+    return _norm_text(text).startswith("nội dung không rõ ràng:")
+
+
+def _is_stale_hr_content(doc_id: str, text: str) -> bool:
+    if doc_id != "hr_leave_policy":
+        return False
+    norm = _norm_text(text)
+    return "bản hr 2025" in norm or "10 ngày phép năm" in norm
+
+
 def load_raw_csv(path: Path) -> List[Dict[str, str]]:
     rows: List[Dict[str, str]] = []
     with path.open(encoding="utf-8", newline="") as f:
@@ -75,8 +119,11 @@ def clean_rows(
     2) Chuẩn hoá effective_date sang YYYY-MM-DD; quarantine nếu không parse được.
     3) Quarantine: chunk hr_leave_policy có effective_date < 2026-01-01 (bản HR cũ / conflict version).
     4) Quarantine: chunk_text rỗng hoặc effective_date rỗng sau chuẩn hoá.
-    5) Loại trùng nội dung chunk_text (giữ bản đầu).
-    6) Fix stale refund: policy_refund_v4 chứa '14 ngày làm việc' → 7 ngày.
+    5) Quarantine chunk mơ hồ ("Nội dung không rõ ràng") và HR stale theo marker nội dung.
+    6) Chuẩn hoá exported_at, loại bản cũ hơn effective_date canonical theo từng doc.
+    7) Chuẩn hoá nhiễu văn bản có tác động retrieval (!!!, "làm việc" lặp).
+    8) Loại trùng nội dung chunk_text (giữ bản đầu).
+    9) Fix stale refund: policy_refund_v4 chứa '14 ngày làm việc' → 7 ngày.
     """
     quarantine: List[Dict[str, Any]] = []
     seen_text: set[str] = set()
@@ -115,13 +162,36 @@ def clean_rows(
             quarantine.append({**raw, "reason": "missing_chunk_text"})
             continue
 
-        key = _norm_text(text)
-        if key in seen_text:
-            quarantine.append({**raw, "reason": "duplicate_chunk_text"})
+        exported_norm, exported_err = _normalize_exported_at(exported_at)
+        if exported_err:
+            quarantine.append({**raw, "reason": exported_err, "exported_at_raw": exported_at})
             continue
-        seen_text.add(key)
 
-        fixed_text = text
+        min_eff = DOC_MIN_EFFECTIVE_DATES.get(doc_id)
+        if min_eff and eff_norm < min_eff:
+            quarantine.append(
+                {
+                    **raw,
+                    "reason": "stale_effective_date_for_doc",
+                    "effective_date_normalized": eff_norm,
+                    "min_effective_date": min_eff,
+                }
+            )
+            continue
+
+        if _is_ambiguous_chunk(text):
+            quarantine.append({**raw, "reason": "ambiguous_chunk_text"})
+            continue
+
+        if _is_stale_hr_content(doc_id, text):
+            quarantine.append({**raw, "reason": "stale_hr_policy_content"})
+            continue
+
+        fixed_text = _normalize_chunk_text(text)
+        if not fixed_text:
+            quarantine.append({**raw, "reason": "missing_chunk_text_after_normalize"})
+            continue
+
         if apply_refund_window_fix and doc_id == "policy_refund_v4":
             if "14 ngày làm việc" in fixed_text:
                 fixed_text = fixed_text.replace(
@@ -130,6 +200,12 @@ def clean_rows(
                 )
                 fixed_text += " [cleaned: stale_refund_window]"
 
+        key = _norm_text(fixed_text)
+        if key in seen_text:
+            quarantine.append({**raw, "reason": "duplicate_chunk_text"})
+            continue
+        seen_text.add(key)
+
         seq += 1
         cleaned.append(
             {
@@ -137,7 +213,7 @@ def clean_rows(
                 "doc_id": doc_id,
                 "chunk_text": fixed_text,
                 "effective_date": eff_norm,
-                "exported_at": exported_at or "",
+                "exported_at": exported_norm,
             }
         )
 

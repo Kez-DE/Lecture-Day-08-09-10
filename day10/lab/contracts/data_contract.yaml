@@ -1,60 +1,107 @@
-# Data contract — Lab Day 10 (tiếp nối artifact CS + IT Helpdesk)
-# Sinh viên bổ sung owner, SLA freshness, và nguồn canonical.
+# Data contract — Lab Day 10 (CS + IT Helpdesk KB chunk export)
 
-version: "1.0"
+version: "1.1"
 dataset: "kb_chunk_export"
-owner_team: "__TODO__"
+owner_team: "Day 10 Data Pipeline Team"
 
 schema_cleaned:
   chunk_id:
     type: string
     required: true
-    description: "ID ổn định sau clean (thường hash hoặc doc_id + seq)"
+    description: "Stable publish id generated from doc_id, cleaned text, and sequence."
   doc_id:
     type: string
     required: true
-    description: "Khóa logic tài liệu nguồn (vd policy_refund_v4)"
+    description: "Canonical source document id."
+    allowed_values:
+      - policy_refund_v4
+      - sla_p1_2026
+      - it_helpdesk_faq
+      - hr_leave_policy
+      - access_control_sop
   chunk_text:
     type: string
     required: true
     constraints:
       min_length: 8
+      forbidden_markers:
+        - "Nội dung không rõ ràng:"
+        - "10 ngày phép năm"
+        - "14 ngày làm việc"
   effective_date:
     type: date
     required: true
+    format: "YYYY-MM-DD"
   exported_at:
     type: datetime
     required: true
+    format: "YYYY-MM-DDTHH:MM:SS"
 
 quality_rules:
+  - id: "allowed_doc_ids_only"
+    severity: "halt"
+    description: "Only canonical source ids are published."
+  - id: "required_doc_ids_present"
+    severity: "halt"
+    description: "All five grading sources must have at least one cleaned chunk."
   - id: "no_duplicate_chunk_text"
     severity: "warn"
+    description: "Duplicate cleaned text is quarantined before publish."
   - id: "no_stale_refund_window"
-    description: "Không được để chunk policy refund chứa cửa sổ 14 ngày (lệch so với v4 = 7 ngày)"
+    severity: "halt"
+    description: "Refund policy must not publish the obsolete 14-day window."
+  - id: "no_stale_hr_2025_policy"
+    severity: "halt"
+    description: "HR annual leave must not publish 2025 content or 10-day annual leave."
+  - id: "effective_date_iso_yyyy_mm_dd"
+    severity: "halt"
+  - id: "exported_at_iso_datetime"
+    severity: "halt"
+  - id: "no_ambiguous_chunk_marker"
     severity: "halt"
 
 freshness:
-  measured_at: "publish"  # ingest | cleaned | publish
+  measured_at: "publish"
+  source_field: "latest_exported_at"
   sla_hours: 24
-  alert_channel: "__TODO__"
+  alert_channel: "#data-quality"
+  current_status_example:
+    run_id: "sprint123-qwen-final"
+    status: "FAIL"
+    reason: "latest_exported_at=2026-04-11T00:00:00 is older than 24h on 2026-06-10"
 
 canonical_sources:
   - path: "data/docs/policy_refund_v4.txt"
     doc_id: "policy_refund_v4"
+    owner: "CS Policy"
+    min_effective_date: "2026-02-01"
   - path: "data/docs/sla_p1_2026.txt"
     doc_id: "sla_p1_2026"
+    owner: "Incident Management"
+    min_effective_date: "2026-01-15"
   - path: "data/docs/it_helpdesk_faq.txt"
     doc_id: "it_helpdesk_faq"
+    owner: "IT Helpdesk"
+    min_effective_date: "2026-01-20"
   - path: "data/docs/hr_leave_policy.txt"
     doc_id: "hr_leave_policy"
+    owner: "HR Operations"
+    min_effective_date: "2026-01-01"
+  - path: "data/docs/access_control_sop.txt"
+    doc_id: "access_control_sop"
+    owner: "IAM / Security"
+    min_effective_date: "2026-01-01"
 
-# Baseline allowlist export — nhóm mở rộng doc mới phải đồng bộ cleaning_rules + contract.
 allowed_doc_ids:
   - policy_refund_v4
   - sla_p1_2026
   - it_helpdesk_faq
   - hr_leave_policy
+  - access_control_sop
 
-# Merit/Distinction: có thể đưa cutoff versioning vào env và tham chiếu ở đây (tránh hard-code trong code).
-policy_versioning:
-  hr_leave_min_effective_date: "2026-01-01"
+publish:
+  vector_store: "Chroma"
+  collection: "day10_kb_qwen3"
+  embedding_provider: "ollama"
+  embedding_model: "qwen3-embedding:0.6b"
+  idempotency: "upsert by chunk_id and prune ids not present in the current cleaned snapshot"
